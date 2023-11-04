@@ -3,13 +3,14 @@
 #include "value.hpp"
 
 #include <cstddef>
+#include <optional>
 #include <vector>
 
-enum InstructionType { LoadConstant, Return };
+enum InstructionType { PrintStack, LoadConstant };
 
 struct Instruction {
 	InstructionType type;
-	Value operand;
+    std::optional<Value> operand;
 };
 
 class Chunk {

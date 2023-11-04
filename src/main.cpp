@@ -3,7 +3,7 @@
 
 int main() {
 	Chunk chunk;
-
+    
 	VirtualMachine vm(chunk);
 
 	vm.run();
