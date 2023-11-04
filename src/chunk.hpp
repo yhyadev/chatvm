@@ -6,11 +6,19 @@
 #include <optional>
 #include <vector>
 
-enum InstructionType { PrintStack, LoadConstant };
+enum InstructionType {
+	PrintStack,
+	LoadConstant,
+	Add,
+	Subtract,
+	Multiply,
+	Divide,
+	Modulo
+};
 
 struct Instruction {
 	InstructionType type;
-    std::optional<Value> operand;
+	std::optional<Value> operand;
 };
 
 class Chunk {
