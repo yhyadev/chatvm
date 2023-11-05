@@ -1,5 +1,6 @@
 #include "chunk.hpp"
 #include "vm.hpp"
+
 #include <iostream>
 
 int main() {
@@ -10,7 +11,6 @@ int main() {
 	VirtualMachineResult result = vm.run();
 
 	if (result != VirtualMachineResult::Ok) {
-		std::cerr << "vm error: " << virtual_machine_result_as_string(result)
-				  << "\n";
+		std::cerr << "vm error: " << vmr_as_string(result) << "\n";
 	}
 }

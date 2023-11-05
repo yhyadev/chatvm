@@ -6,9 +6,14 @@
 #include <string>
 #include <vector>
 
-enum VirtualMachineResult { Ok, InvalidArithmeticOperation };
+enum VirtualMachineResult {
+	Ok,
+	InvalidInstruction,
+	InvalidArithmeticOperation,
+	InvalidComparisonOperation
+};
 
-std::string virtual_machine_result_as_string(VirtualMachineResult);
+std::string vmr_as_string(VirtualMachineResult);
 
 class VirtualMachine {
   public:
@@ -16,14 +21,19 @@ class VirtualMachine {
 
 	VirtualMachineResult run();
 
-	void load_constant(Value);
-	void print_stack();
-
 	VirtualMachineResult addition_operation();
 	VirtualMachineResult subtraction_operation();
 	VirtualMachineResult multiplication_operation();
 	VirtualMachineResult division_operation();
 	VirtualMachineResult modulo_operation();
+
+	VirtualMachineResult equals_operation();
+	VirtualMachineResult notequals_operation();
+	VirtualMachineResult greaterthan_operation();
+	VirtualMachineResult lessthan_operation();
+
+	void load_constant(std::any);
+	void print_stack();
 
   private:
 	Chunk chunk;

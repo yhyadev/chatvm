@@ -1,16 +1,23 @@
 #include "vm.hpp"
 #include "chunk.hpp"
+#include "value.hpp"
 
+#include <any>
+#include <cmath>
 #include <iostream>
 
 #include <string>
 
-std::string virtual_machine_result_as_string(VirtualMachineResult result) {
+std::string vmr_as_string(VirtualMachineResult result) {
 	switch (result) {
 	case VirtualMachineResult::Ok:
 		return "ok";
+	case VirtualMachineResult::InvalidInstruction:
+		return "invalid Instruction";
 	case VirtualMachineResult::InvalidArithmeticOperation:
 		return "invalid arithmetic operation";
+	case VirtualMachineResult::InvalidComparisonOperation:
+		return "invalid comparison operation";
 
 	default:
 		return "unknown virtual machine result";
@@ -30,14 +37,6 @@ VirtualMachineResult VirtualMachine::run() {
 		Instruction current_instruction = chunk.code[pc];
 
 		switch (current_instruction.type) {
-		case InstructionType::LoadConstant:
-			load_constant(current_instruction.operand.value());
-			break;
-
-		case InstructionType::PrintStack:
-			print_stack();
-			break;
-
 		case InstructionType::Add: {
 			VirtualMachineResult result = addition_operation();
 
@@ -81,6 +80,53 @@ VirtualMachineResult VirtualMachine::run() {
 
 			break;
 		}
+
+		case InstructionType::Equals: {
+			VirtualMachineResult result = equals_operation();
+
+			if (result != VirtualMachineResult::Ok)
+				return result;
+
+			break;
+		}
+
+		case InstructionType::NotEquals: {
+			VirtualMachineResult result = notequals_operation();
+
+			if (result != VirtualMachineResult::Ok)
+				return result;
+
+			break;
+		}
+
+		case InstructionType::GreaterThan: {
+			VirtualMachineResult result = greaterthan_operation();
+
+			if (result != VirtualMachineResult::Ok)
+				return result;
+
+			break;
+		}
+
+		case InstructionType::LessThan: {
+			VirtualMachineResult result = lessthan_operation();
+
+			if (result != VirtualMachineResult::Ok)
+				return result;
+
+			break;
+		}
+
+		case InstructionType::LoadConstant:
+			load_constant(current_instruction.operand.value());
+			break;
+
+		case InstructionType::PrintStack:
+			print_stack();
+			break;
+
+		default:
+			return VirtualMachineResult::InvalidInstruction;
 		}
 
 		pc++;
@@ -89,86 +135,191 @@ VirtualMachineResult VirtualMachine::run() {
 	return VirtualMachineResult::Ok;
 }
 
-void VirtualMachine::load_constant(Value operand) { stack.push_back(operand); }
+void VirtualMachine::load_constant(std::any operand) {
+	size_t index = std::any_cast<size_t>(operand);
+
+	stack.push_back(chunk.get_constant(index));
+}
 
 void VirtualMachine::print_stack() {
 	std::cout << "Stack :\n";
 
 	for (Value value : stack)
-		std::cout << "    " << value << "\n";
+		std::cout << "    " << value_as_string(value) << "\n";
 }
 
 VirtualMachineResult VirtualMachine::addition_operation() {
 	if (stack.size() < 2)
-		return InvalidArithmeticOperation;
+		return VirtualMachineResult::InvalidArithmeticOperation;
 
-	Value right = stack[stack.size()];
+	Value right = stack[stack.size() - 1];
 	stack.pop_back();
 
-	Value left = stack[stack.size()];
+	Value left = stack[stack.size() - 1];
 	stack.pop_back();
 
-	stack.push_back(left + right);
+	if (!IS_NUMBER(left) || !IS_NUMBER(right))
+		return VirtualMachineResult::InvalidArithmeticOperation;
+
+	double rhs = AS_NUMBER(right);
+
+	double lhs = AS_NUMBER(left);
+
+	stack.push_back(NUMBER_VALUE(lhs + rhs));
 
 	return VirtualMachineResult::Ok;
 }
 
 VirtualMachineResult VirtualMachine::subtraction_operation() {
 	if (stack.size() < 2)
-		return InvalidArithmeticOperation;
+		return VirtualMachineResult::InvalidArithmeticOperation;
 
-	Value right = stack[stack.size()];
+	Value right = stack[stack.size() - 1];
 	stack.pop_back();
 
-	Value left = stack[stack.size()];
+	Value left = stack[stack.size() - 1];
 	stack.pop_back();
 
-	stack.push_back(left - right);
+	if (!IS_NUMBER(left) || !IS_NUMBER(right))
+		return VirtualMachineResult::InvalidArithmeticOperation;
+
+	double rhs = AS_NUMBER(right);
+
+	double lhs = AS_NUMBER(left);
+
+	stack.push_back(NUMBER_VALUE(lhs - rhs));
 
 	return VirtualMachineResult::Ok;
 }
 
 VirtualMachineResult VirtualMachine::multiplication_operation() {
 	if (stack.size() < 2)
-		return InvalidArithmeticOperation;
+		return VirtualMachineResult::InvalidArithmeticOperation;
 
-	Value right = stack[stack.size()];
+	Value right = stack[stack.size() - 1];
 	stack.pop_back();
 
-	Value left = stack[stack.size()];
+	Value left = stack[stack.size() - 1];
 	stack.pop_back();
 
-	stack.push_back(left * right);
+	if (!IS_NUMBER(left) || !IS_NUMBER(right))
+		return VirtualMachineResult::InvalidArithmeticOperation;
+
+	double rhs = AS_NUMBER(right);
+
+	double lhs = AS_NUMBER(left);
+
+	stack.push_back(NUMBER_VALUE(lhs * rhs));
 
 	return VirtualMachineResult::Ok;
 }
 
 VirtualMachineResult VirtualMachine::division_operation() {
 	if (stack.size() < 2)
-		return InvalidArithmeticOperation;
+		return VirtualMachineResult::InvalidArithmeticOperation;
 
-	Value right = stack[stack.size()];
+	Value right = stack[stack.size() - 1];
 	stack.pop_back();
 
-	Value left = stack[stack.size()];
+	Value left = stack[stack.size() - 1];
 	stack.pop_back();
 
-	stack.push_back(left / right);
+	if (!IS_NUMBER(left) || !IS_NUMBER(right))
+		return VirtualMachineResult::InvalidArithmeticOperation;
+
+	double rhs = AS_NUMBER(right);
+
+	double lhs = AS_NUMBER(left);
+
+	stack.push_back(NUMBER_VALUE(lhs / rhs));
 
 	return VirtualMachineResult::Ok;
 }
 
 VirtualMachineResult VirtualMachine::modulo_operation() {
 	if (stack.size() < 2)
-		return InvalidArithmeticOperation;
+		return VirtualMachineResult::InvalidArithmeticOperation;
 
-	Value right = stack[stack.size()];
+	Value right = stack[stack.size() - 1];
 	stack.pop_back();
 
-	Value left = stack[stack.size()];
+	Value left = stack[stack.size() - 1];
 	stack.pop_back();
 
-	stack.push_back((long long)left % (long long)right);
+	if (!IS_NUMBER(left) || !IS_NUMBER(right))
+		return VirtualMachineResult::InvalidArithmeticOperation;
+
+	double rhs = AS_NUMBER(right);
+
+	double lhs = AS_NUMBER(left);
+
+	stack.push_back(NUMBER_VALUE(fmod(lhs, rhs)));
+
+	return VirtualMachineResult::Ok;
+}
+
+VirtualMachineResult VirtualMachine::equals_operation() {
+	if (stack.size() < 2)
+		return VirtualMachineResult::InvalidComparisonOperation;
+
+	Value right = stack[stack.size() - 1];
+	stack.pop_back();
+
+	Value left = stack[stack.size() - 1];
+	stack.pop_back();
+
+	stack.push_back(BOOLEAL_VALUE(left == right));
+
+	return VirtualMachineResult::Ok;
+}
+
+VirtualMachineResult VirtualMachine::notequals_operation() {
+	if (stack.size() < 2)
+		return VirtualMachineResult::InvalidComparisonOperation;
+
+	Value right = stack[stack.size() - 1];
+	stack.pop_back();
+
+	Value left = stack[stack.size() - 1];
+	stack.pop_back();
+
+	stack.push_back(BOOLEAL_VALUE(left != right));
+
+	return VirtualMachineResult::Ok;
+}
+
+VirtualMachineResult VirtualMachine::greaterthan_operation() {
+	if (stack.size() < 2)
+		return VirtualMachineResult::InvalidComparisonOperation;
+
+	Value right = stack[stack.size() - 1];
+	stack.pop_back();
+
+	Value left = stack[stack.size() - 1];
+	stack.pop_back();
+
+	if (!IS_NUMBER(right) || !IS_NUMBER(left))
+		return VirtualMachineResult::InvalidComparisonOperation;
+
+	stack.push_back(BOOLEAL_VALUE(left > right));
+
+	return VirtualMachineResult::Ok;
+}
+
+VirtualMachineResult VirtualMachine::lessthan_operation() {
+	if (stack.size() < 2)
+		return VirtualMachineResult::InvalidComparisonOperation;
+
+	Value right = stack[stack.size() - 1];
+	stack.pop_back();
+
+	Value left = stack[stack.size() - 1];
+	stack.pop_back();
+
+	if (!IS_NUMBER(right) || !IS_NUMBER(left))
+		return VirtualMachineResult::InvalidComparisonOperation;
+
+	stack.push_back(BOOLEAL_VALUE(left < right));
 
 	return VirtualMachineResult::Ok;
 }
