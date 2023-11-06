@@ -10,26 +10,26 @@
 
 std::string vmr_as_string(VirtualMachineResult result) {
 	switch (result) {
-	case VirtualMachineResult::Ok:
-		return "ok";
-	case VirtualMachineResult::InvalidInstruction:
-		return "invalid Instruction";
 	case VirtualMachineResult::InvalidArithmeticOperation:
 		return "invalid arithmetic operation";
 	case VirtualMachineResult::InvalidComparisonOperation:
 		return "invalid comparison operation";
-
+	case VirtualMachineResult::InvalidInstruction:
+		return "invalid instruction";
+	case VirtualMachineResult::Ok:
+		return "ok";
 	default:
 		return "unknown virtual machine result";
 	}
 }
 
 VirtualMachine::VirtualMachine(Chunk c) {
-	chunk = c;
-	pc = 0;
-	halt = false;
-
 	stack = {};
+	
+    chunk = c;
+	halt = false;
+	pc = 0;
+
 }
 
 VirtualMachineResult VirtualMachine::run() {

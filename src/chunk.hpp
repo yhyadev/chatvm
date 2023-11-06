@@ -24,8 +24,8 @@ enum InstructionType {
 };
 
 struct Instruction {
-	InstructionType type;
 	std::optional<std::any> operand;
+	InstructionType type;
 };
 
 class Chunk {
