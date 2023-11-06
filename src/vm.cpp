@@ -23,13 +23,11 @@ std::string vmr_as_string(VirtualMachineResult result) {
 	}
 }
 
-VirtualMachine::VirtualMachine(Chunk c) {
-	stack = {};
-	
-    chunk = c;
-	halt = false;
+VirtualMachine::VirtualMachine(Chunk c): chunk(c) {
 	pc = 0;
+	halt = false;
 
+	stack = {};
 }
 
 VirtualMachineResult VirtualMachine::run() {
