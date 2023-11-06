@@ -21,7 +21,7 @@ struct Value {
 };
 
 #define NULL_VALUE (Value{.type = ValueType::Null, .as = {.number = 0}})
-#define BOOLEAL_VALUE(b)                                                       \
+#define BOOLEAN_VALUE(b)                                                       \
 	(Value{.type = ValueType::Boolean, .as = {.boolean = b}})
 #define NUMBER_VALUE(n) (Value{.type = ValueType::Number, .as = {.number = n}})
 

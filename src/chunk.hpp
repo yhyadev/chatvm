@@ -14,6 +14,8 @@ enum InstructionType {
 	Divide,
 	Modulo,
 
+	Not,
+
 	Equals,
 	NotEquals,
 	GreaterThan,

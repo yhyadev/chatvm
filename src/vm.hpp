@@ -7,10 +7,11 @@
 #include <vector>
 
 enum VirtualMachineResult {
-	Ok,
-	InvalidInstruction,
+	InvalidUnaryOperation,
 	InvalidArithmeticOperation,
-	InvalidComparisonOperation
+	InvalidComparisonOperation,
+	InvalidInstruction,
+	Ok,
 };
 
 std::string vmr_as_string(VirtualMachineResult);
@@ -26,6 +27,8 @@ class VirtualMachine {
 	VirtualMachineResult multiplication_operation();
 	VirtualMachineResult division_operation();
 	VirtualMachineResult modulo_operation();
+
+	VirtualMachineResult logical_not_operation();
 
 	VirtualMachineResult equals_operation();
 	VirtualMachineResult notequals_operation();

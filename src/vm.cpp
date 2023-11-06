@@ -10,6 +10,8 @@
 
 std::string vmr_as_string(VirtualMachineResult result) {
 	switch (result) {
+	case VirtualMachineResult::InvalidUnaryOperation:
+		return "invalid unary operation";
 	case VirtualMachineResult::InvalidArithmeticOperation:
 		return "invalid arithmetic operation";
 	case VirtualMachineResult::InvalidComparisonOperation:
@@ -23,7 +25,7 @@ std::string vmr_as_string(VirtualMachineResult result) {
 	}
 }
 
-VirtualMachine::VirtualMachine(Chunk c): chunk(c) {
+VirtualMachine::VirtualMachine(Chunk c) : chunk(c) {
 	pc = 0;
 	halt = false;
 
@@ -72,6 +74,15 @@ VirtualMachineResult VirtualMachine::run() {
 		}
 		case InstructionType::Modulo: {
 			VirtualMachineResult result = modulo_operation();
+
+			if (result != VirtualMachineResult::Ok)
+				return result;
+
+			break;
+		}
+
+		case InstructionType::Not: {
+			VirtualMachineResult result = logical_not_operation();
 
 			if (result != VirtualMachineResult::Ok)
 				return result;
@@ -256,6 +267,30 @@ VirtualMachineResult VirtualMachine::modulo_operation() {
 	return VirtualMachineResult::Ok;
 }
 
+VirtualMachineResult VirtualMachine::logical_not_operation() {
+	if (stack.size() < 1)
+		return VirtualMachineResult::InvalidUnaryOperation;
+
+	Value right = stack[stack.size() - 1];
+	stack.pop_back();
+
+	switch (right.type) {
+	case ValueType::Null:
+		stack.push_back(BOOLEAN_VALUE(true));
+	case ValueType::Boolean:
+		stack.push_back(BOOLEAN_VALUE(!AS_BOOLEAN(right)));
+		break;
+	case ValueType::Number:
+		stack.push_back(BOOLEAN_VALUE(!AS_NUMBER(right)));
+		break;
+	default:
+		stack.push_back(BOOLEAN_VALUE(false));
+		break;
+	}
+
+	return VirtualMachineResult::Ok;
+}
+
 VirtualMachineResult VirtualMachine::equals_operation() {
 	if (stack.size() < 2)
 		return VirtualMachineResult::InvalidComparisonOperation;
@@ -266,7 +301,7 @@ VirtualMachineResult VirtualMachine::equals_operation() {
 	Value left = stack[stack.size() - 1];
 	stack.pop_back();
 
-	stack.push_back(BOOLEAL_VALUE(left == right));
+	stack.push_back(BOOLEAN_VALUE(left == right));
 
 	return VirtualMachineResult::Ok;
 }
@@ -281,7 +316,7 @@ VirtualMachineResult VirtualMachine::notequals_operation() {
 	Value left = stack[stack.size() - 1];
 	stack.pop_back();
 
-	stack.push_back(BOOLEAL_VALUE(left != right));
+	stack.push_back(BOOLEAN_VALUE(left != right));
 
 	return VirtualMachineResult::Ok;
 }
@@ -299,7 +334,7 @@ VirtualMachineResult VirtualMachine::greaterthan_operation() {
 	if (!IS_NUMBER(right) || !IS_NUMBER(left))
 		return VirtualMachineResult::InvalidComparisonOperation;
 
-	stack.push_back(BOOLEAL_VALUE(left > right));
+	stack.push_back(BOOLEAN_VALUE(left > right));
 
 	return VirtualMachineResult::Ok;
 }
@@ -317,7 +352,7 @@ VirtualMachineResult VirtualMachine::lessthan_operation() {
 	if (!IS_NUMBER(right) || !IS_NUMBER(left))
 		return VirtualMachineResult::InvalidComparisonOperation;
 
-	stack.push_back(BOOLEAL_VALUE(left < right));
+	stack.push_back(BOOLEAN_VALUE(left < right));
 
 	return VirtualMachineResult::Ok;
 }
